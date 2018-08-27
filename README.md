@@ -15,14 +15,36 @@ Alternatively download a pre-built binary and run that:
 
 # Usage (API Spec)
 
-## GET <host>/upload
-A very simple form can be found at http://<host>/upload where a file can be selected and the upload can be indicated as private or public.
+## GET /upload
+A very simple HTML form can be found at `http://<host>/upload` where a file can be selected and the upload can be indicated as private or public.
 
-## POST <host>/upload
+## POST /upload
 Allows uploading a large file as either private or public.
 
-Input Parameters:
-  
+Input Parameters (type multipart/form-data):
+| Parameter Name     | Type             | Value               |
+|--------------------|------------------|---------------------|
+| uploadFile         | file             | file to be uploaded |
+| private            | checkbox         | private             |
+
+Return Value (type JSON):
+```json
+{ "FileURL": <url where file can be downloaded> }
+```
+
+## GET /private/{fileName}
+
+Return Value (type application/octet-stream binary):
+Requested file if it exists, 404 otherwise.
+
+## GET /public/
+Standard file-server directory listing all public files
+
+## GET /public/{fileName}
+
+Return Value (type application/octet-stream binary):
+Requested file if it exists, 404 otherwise.
+
 # Configuration
 
 The following Environment variables can be set for configuring the service:
