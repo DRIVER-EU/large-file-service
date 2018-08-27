@@ -22,10 +22,11 @@ A very simple HTML form can be found at `http://<host>/upload` where a file can 
 Allows uploading a large file as either private or public.
 
 Input Parameters (type multipart/form-data):
-| Parameter Name     | Type             | Value               |
-|--------------------|------------------|---------------------|
-| uploadFile         | file             | file to be uploaded |
-| private            | checkbox         | private             |
+
+| Parameter Name | Type     | Value                                     |
+|----------------|----------|-------------------------------------------|
+| uploadFile     | file     | file to be uploaded                       |
+| private        | checkbox | "private" if set, empty string if not set |
 
 Return Value (type JSON):
 ```json
