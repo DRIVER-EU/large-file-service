@@ -13,6 +13,16 @@ Alternatively download a pre-built binary and run that:
 * Windows: https://github.com/DRIVER-EU/large-file-service/releases/download/0.0.1/large-file-service.exe
 * Linux: Not available yet
 
+# Usage (API Spec)
+
+## GET <host>/upload
+A very simple form can be found at http://<host>/upload where a file can be selected and the upload can be indicated as private or public.
+
+## POST <host>/upload
+Allows uploading a large file as either private or public.
+
+Input Parameters:
+  
 # Configuration
 
 The following Environment variables can be set for configuring the service:
