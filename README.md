@@ -30,7 +30,17 @@ Input Parameters (type multipart/form-data):
 
 Return Value (type JSON):
 ```json
-{ "FileURL": <url where file can be downloaded> }
+{"FileURL": "url" }
+```
+
+For example for a public file
+```json
+{"FileURL": "http://localhost:9090/public/report.pdf" }
+```
+
+or for a private file
+```json
+{"FileURL":"http://localhost:9090/private/9EA59EE5-ACE2-3EFC-B007-AEB9B094FEAA.pdf"}
 ```
 
 ## GET /private/{fileName}
