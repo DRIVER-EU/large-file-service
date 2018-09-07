@@ -36,11 +36,11 @@ Order of application of configuration is: command line parameters > environment 
 
 ## Command Line Parameter Configuration
 
-| Command Line Parameter           | Description                                                         | Default value  |
-|----------------------------------|---------------------------------------------------------------------|----------------|
-| -hostname=<hostname>             | hostname:port that the service will listen on                       | localhost:9090 |
-| -publicDir=<path>                | relative                                                            | ./public       |
-| -privateDir=<path>               | relative location of the directory where private files are uploaded | ./private      |
-| -writeTimout=<secs>              | timeout limit in seconds for a GET request / download               | 120            |
-| -readTimeout=<secs>              | timeout limit in seconds for a POST request / upload                | 120            |
-| -h or -help                      | lists available command line parameters and their default values    | 120            |
+| Command Line Parameter             | Description                                                         | Default value  |
+|------------------------------------|---------------------------------------------------------------------|----------------|
+| `-hostname=<hostname>`             | hostname:port that the service will listen on                       | localhost:9090 |
+| `-publicDir=<path>`                | relative                                                            | ./public       |
+| `-privateDir=<path>`               | relative location of the directory where private files are uploaded | ./private      |
+| `-writeTimout=<secs>`              | timeout limit in seconds for a GET request / download               | 120            |
+| `-readTimeout=<secs>`              | timeout limit in seconds for a POST request / upload                | 120            |
+| `-h or -help`                      | lists available command line parameters and their default values    | 120            |
