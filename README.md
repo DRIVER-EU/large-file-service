@@ -5,7 +5,7 @@ The Test-bed Large File service allows uploading large files. An uploaded file m
 # Installation and running
 
 * Install Go: https://golang.org/doc/install
-* Add your GOPATH bin folder (default: %USERPROFILE%\go\bin) to your PATH.
+* Add your GOPATH bin folder (default: `%USERPROFILE%\go\bin`) to your PATH.
 * Install Large File Service: `go get github.com/driver-eu/large-file-service` This installs the service to your `%GOPATH%\bin` directory.
 * Run: `large-file-service` from your command line
 
