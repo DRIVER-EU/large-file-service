@@ -29,17 +29,18 @@ Order of application of configuration is: command line parameters > environment 
 | Variable           | Description                                                         | Default value  |
 |--------------------|---------------------------------------------------------------------|----------------|
 | HOST               | hostname:port that the service will listen on                       | localhost:9090 |
-| PUBLIC_UPLOAD_DIR  | relative                                                            | public         |
-| PRIVATE_UPLOAD_DIR | relative location of the directory where private files are uploaded | private        |
-| WRITE_TIMEOUT_SECS | timeout limit in seconds for a file upload                          | 120            |
-| READ_TIMEOUT_SECS  | timeout limit in seconds for a file download                        | 120            |
+| PUBLIC_UPLOAD_DIR  | path of the directory where public files are uploaded               | ./public       |
+| PRIVATE_UPLOAD_DIR | path of the directory where private files are uploaded              | ./private      |
+| WRITE_TIMEOUT_SECS | timeout limit in seconds for a GET request / download               | 120            |
+| READ_TIMEOUT_SECS  | timeout limit in seconds for a POST request / upload                | 120            |
 
 ## Command Line Parameter Configuration
 
 | Command Line Parameter           | Description                                                         | Default value  |
 |----------------------------------|---------------------------------------------------------------------|----------------|
-| hostname                         | hostname:port that the service will listen on                       | localhost:9090 |
-| publicDir                        | relative                                                            | public         |
-| privateDir                       | relative location of the directory where private files are uploaded | private        |
-| writeTimout                      | timeout limit in seconds for a file upload                          | 120            |
-| readTimeout                      | timeout limit in seconds for a file download                        | 120            |
+| -hostname=<hostname>             | hostname:port that the service will listen on                       | localhost:9090 |
+| -publicDir=<path>                | relative                                                            | ./public       |
+| -privateDir=<path>               | relative location of the directory where private files are uploaded | ./private      |
+| -writeTimout=<secs>              | timeout limit in seconds for a GET request / download               | 120            |
+| -readTimeout=<secs>              | timeout limit in seconds for a POST request / upload                | 120            |
+| -h or -help                      | lists available command line parameters and their default values    | 120            |
