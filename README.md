@@ -44,3 +44,21 @@ Order of application of configuration is: command line parameters > environment 
 | `-writeTimout=<secs>`              | timeout limit in seconds for a GET request / download               | 120            |
 | `-readTimeout=<secs>`              | timeout limit in seconds for a POST request / upload                | 120            |
 | `-h or -help`                      | lists available command line parameters and their default values    | 120            |
+
+# Example Usage
+
+To upload a file publically with cURL:
+
+`curl -X POST "http://localhost:9090/upload" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "uploadFile=@publicfile.pdf;type=application/pdf" -F "private=false"`
+
+To upload a file privately with cURL:
+
+`curl -X POST "http://localhost:9090/upload" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "uploadFile=@privatefile.pdf;type=application/pdf" -F "private=true"`
+
+After uploading your file you will receive a JSON response, with either an obfuscated or public URL:
+
+```json
+{"FileURL":"http://localhost:9090/private/B4FE4514-02C1-3FCE-4677-3373C7D5E914.pdf"}
+```
+This FileURL can then be filled in the [large_data_update](https://github.com/DRIVER-EU/avro-schemas/blob/master/core/large-data/system_large_data_update-value.avsc) message that can be sent to the DRIVER+ Test-bed.
+
