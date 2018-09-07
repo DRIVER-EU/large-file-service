@@ -94,10 +94,10 @@ func getEnvVariables() {
 // overwrites the configuration with command line parameters if provided
 func getFlags() {
 	flag.StringVar(&hostname, "hostname", hostname, "hostname including port of the file server")
-	flag.StringVar(&publicDir, "public", publicDir, "path of the public upload directory")
-	flag.StringVar(&privateDir, "private", privateDir, "path of the private upload directory")
-	writeTimeoutPtr := flag.Int("readTimeout", writeTimeout, "HTTP Server read timeout in seconds.")
+	flag.StringVar(&publicDir, "publicDir", publicDir, "path of the public upload directory")
+	flag.StringVar(&privateDir, "privateDir", privateDir, "path of the private upload directory")
 	readTimeoutPtr := flag.Int("writeTimeout", readTimeout, "HTTP Server write timeout in seconds.")
+	writeTimeoutPtr := flag.Int("readTimeout", writeTimeout, "HTTP Server read timeout in seconds.")
 	flag.Parse()
 	writeTimeout = *writeTimeoutPtr
 	readTimeout = *readTimeoutPtr
