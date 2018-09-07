@@ -55,6 +55,8 @@ To upload a file privately via cURL:
 
 `curl -X POST "http://localhost:9090/upload" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "uploadFile=@privatefile.pdf;type=application/pdf" -F "private=true"`
 
+Alternatively, you may use functionality provided by the programming language of your choice to POST multipart/form-data.
+
 After uploading your file you will receive a JSON response, with either an obfuscated or public URL:
 
 ```json
