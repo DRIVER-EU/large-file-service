@@ -47,11 +47,11 @@ Order of application of configuration is: command line parameters > environment 
 
 # Example Usage
 
-To upload a file publically with cURL:
+To upload a file publically via cURL:
 
 `curl -X POST "http://localhost:9090/upload" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "uploadFile=@publicfile.pdf;type=application/pdf" -F "private=false"`
 
-To upload a file privately with cURL:
+To upload a file privately via cURL:
 
 `curl -X POST "http://localhost:9090/upload" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "uploadFile=@privatefile.pdf;type=application/pdf" -F "private=true"`
 
