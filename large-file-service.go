@@ -122,7 +122,6 @@ func getFile(w http.ResponseWriter, r *http.Request) {
 func swaggerUI(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		t, _ := template.New("swaggerUI").Parse(swaggerBox.String("index.gtpl"))
-		log.Println(swaggerBox.String("index.gtpl"))
 		t.Execute(w, hostname)
 	}
 }
