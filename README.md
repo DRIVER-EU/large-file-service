@@ -5,7 +5,8 @@ The Test-bed Large File service allows uploading large files. An uploaded file m
 # Installation and running
 
 * Install Go: https://golang.org/doc/install
-* Install Large File Service: `go get github.com/driver-eu/large-file-service` This installs the service to your `GOPATH/bin` directory.
+* Add your GOPATH bin folder (default: %USERPROFILE%\go\bin) to your PATH.
+* Install Large File Service: `go get github.com/driver-eu/large-file-service` This installs the service to your `%GOPATH%\bin` directory.
 * Run: `large-file-service` from your command line
 
 Alternatively download a pre-built binary and run:
@@ -15,50 +16,15 @@ Alternatively download a pre-built binary and run:
 
 # Usage (API Spec)
 
-## GET /upload
-A very simple HTML form can be found at `http://<host>/upload` where a file can be selected and the upload can be indicated as private or public.
-
-## POST /upload
-Allows uploading a large file as either private or public.
-
-Input Parameters (type multipart/form-data):
-
-| Parameter Name | Type     | Value                                     |
-|----------------|----------|-------------------------------------------|
-| uploadFile     | file     | file to be uploaded                       |
-| private        | checkbox | "private" if set, empty string if not set |
-
-Return Value (type JSON):
-```json
-{"FileURL": "url" }
-```
-
-For example for a public file
-```json
-{"FileURL": "http://localhost:9090/public/report.pdf" }
-```
-
-or for a private file
-```json
-{"FileURL":"http://localhost:9090/private/9EA59EE5-ACE2-3EFC-B007-AEB9B094FEAA.pdf"}
-```
-
-## GET /private/{fileName}
-
-Return Value (type application/octet-stream binary):
-Requested file if it exists, 404 otherwise.
-
-## GET /public/
-Standard file-server directory listing all public files
-
-## GET /public/{fileName}
-
-Return Value (type application/octet-stream binary):
-Requested file if it exists, 404 otherwise.
+Once the Service is Running you can find a Swagger UI containing API definitions and allowing you to try out the API at http://<hostname>/api. This is http://localhost:9090/api by default.
 
 # Configuration
 
-The following Environment variables can be set for configuring the service:
+The DRIVER+ Large File Service may be configured via either Environment variables or by providing command line parameters. If no configuration is provided, the defaults will be applied.
+
+Order of application of configuration is: command line parameters > environment variables > defaults.
+
+## Environment Variable Configuration
 
 | Variable           | Description                                                         | Default value  |
 |--------------------|---------------------------------------------------------------------|----------------|
@@ -68,4 +34,12 @@ The following Environment variables can be set for configuring the service:
 | WRITE_TIMEOUT_SECS | timeout limit in seconds for a file upload                          | 120            |
 | READ_TIMEOUT_SECS  | timeout limit in seconds for a file download                        | 120            |
 
+## Command Line Parameter Configuration
 
+| Command Line Parameter           | Description                                                         | Default value  |
+|----------------------------------|---------------------------------------------------------------------|----------------|
+| hostname                         | hostname:port that the service will listen on                       | localhost:9090 |
+| publicDir                        | relative                                                            | public         |
+| privateDir                       | relative location of the directory where private files are uploaded | private        |
+| writeTimout                      | timeout limit in seconds for a file upload                          | 120            |
+| readTimeout                      | timeout limit in seconds for a file download                        | 120            |
