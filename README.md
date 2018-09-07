@@ -60,5 +60,5 @@ After uploading your file you will receive a JSON response, with either an obfus
 ```json
 {"FileURL":"http://localhost:9090/private/B4FE4514-02C1-3FCE-4677-3373C7D5E914.pdf"}
 ```
-This FileURL can then be filled in the [large_data_update](https://github.com/DRIVER-EU/avro-schemas/blob/master/core/large-data/system_large_data_update-value.avsc) message that can be sent to the DRIVER+ Test-bed.
+This FileURL can then be filled in the [large_data_update](https://github.com/DRIVER-EU/avro-schemas/blob/master/core/large-data/system_large_data_update-value.avsc) message that can be sent to the DRIVER+ Test-bed to notify other Applications that are conntected to the Test-bed that the file can be downloaded.
 
