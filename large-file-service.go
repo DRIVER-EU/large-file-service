@@ -3,8 +3,8 @@ package main
 import (
 	"crypto/rand"
 	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/gorilla/mux"
 	"html/template"
 	"io"
 	"log"
@@ -14,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/gobuffalo/packr"
+	"github.com/gorilla/mux"
 )
 
 type uploadResponse struct {
@@ -23,19 +26,31 @@ type uploadResponse struct {
 var publicDir string
 var privateDir string
 var hostname string
+var writeTimeout int
+var readTimeout int
+
+var templateBox packr.Box
+var swaggerBox packr.Box
 
 func main() {
-	// gets settings or sets defaults
-	hostname = getEnv("HOST", "localhost:9090")
-	publicDir = strings.TrimSuffix(getEnv("PUBLIC_UPLOAD_DIR", "public"), "/")
-	privateDir = strings.TrimSuffix(getEnv("PRIVATE_UPLOAD_DIR", "private"), "/")
-	writeTimeout, _ := strconv.Atoi(getEnv("WRITE_TIMEOUT_SECS", "120"))
-	readTimeout, _ := strconv.Atoi(getEnv("READ_TIMEOUT_SECS", "120"))
+	// first set settings from ENV variables with a default
+	getEnvVariables()
+
+	// then override with flags if set
+	getFlags()
+
+	// package templates into binary for easy distribution as they should not change much
+	templateBox = packr.NewBox("./templates")
+
+	swaggerBox = packr.NewBox("./swagger")
 
 	// create a server router for relative paths
 	router := mux.NewRouter()
 
-	// handles public and private upload requests
+	// refer root of the service to the upload form
+	router.HandleFunc("/", upload).Methods("GET")
+
+	// handles public and private upload requests and shows the upload form
 	router.HandleFunc("/upload", upload).Methods("GET", "POST")
 
 	// handles private file retrieval by ID
@@ -43,7 +58,14 @@ func main() {
 
 	// public file server
 	fs := http.FileServer(http.Dir(publicDir))
-	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", fs))
+	router.PathPrefix("/public").Handler(http.StripPrefix("/public", fs))
+
+	// file server for the Swagger UI static resources
+	swaggerServer := http.FileServer(swaggerBox)
+	router.PathPrefix("/api/resources").Handler(http.StripPrefix("/api/resources", swaggerServer))
+
+	// function handler to generate an serve the Swagger UI template so it is dynamic based on provided hostname
+	router.HandleFunc("/api", swaggerUI).Methods("GET")
 
 	server := &http.Server{
 		Handler:      router,
@@ -55,15 +77,39 @@ func main() {
 	makeDirs()
 
 	log.Printf("File uploader service started! Listening at: http://" + hostname)
+	log.Printf("Public upload dir is: " + publicDir)
+	log.Printf("Private upload dir is: " + privateDir)
 	log.Fatal(server.ListenAndServe())
 }
 
+// gets and sets the environment variables if present, otherwise falls back to defaults
+func getEnvVariables() {
+	hostname = getEnv("HOST", "localhost:9090")
+	publicDir = strings.TrimSuffix(getEnv("PUBLIC_UPLOAD_DIR", "public"), "/")
+	privateDir = strings.TrimSuffix(getEnv("PRIVATE_UPLOAD_DIR", "private"), "/")
+	writeTimeout, _ = strconv.Atoi(getEnv("WRITE_TIMEOUT_SECS", "120"))
+	readTimeout, _ = strconv.Atoi(getEnv("READ_TIMEOUT_SECS", "120"))
+}
+
+// overwrites the configuration with command line parameters if provided
+func getFlags() {
+	flag.StringVar(&hostname, "hostname", hostname, "hostname including port of the file server")
+	flag.StringVar(&publicDir, "public", publicDir, "path of the public upload directory")
+	flag.StringVar(&privateDir, "private", privateDir, "path of the private upload directory")
+	writeTimeoutPtr := flag.Int("readTimeout", writeTimeout, "HTTP Server read timeout in seconds.")
+	readTimeoutPtr := flag.Int("writeTimeout", readTimeout, "HTTP Server write timeout in seconds.")
+	flag.Parse()
+	writeTimeout = *writeTimeoutPtr
+	readTimeout = *readTimeoutPtr
+}
+
+// serves a private file if it exists, returns 404 otherwise
 func getFile(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	fileID := vars["fileId"]
 
 	path := privateDir + "/" + fileID
-	log.Println(path)
+	log.Println("Private file requested: " + path)
 	if f, err := os.Stat(path); err == nil && !f.IsDir() {
 		http.ServeFile(w, r, path)
 		return
@@ -72,10 +118,20 @@ func getFile(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
+// renders the Swagger UI template with the configured hostname
+func swaggerUI(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, _ := template.New("swaggerUI").Parse(swaggerBox.String("index.gtpl"))
+		log.Println(swaggerBox.String("index.gtpl"))
+		t.Execute(w, hostname)
+	}
+}
+
+// Main upload functionaly. Serves a simple HTML form for get, and handles public and private file uploads via a form post.
 func upload(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("upload.gtpl")
-		t.Execute(w, nil)
+		t, _ := template.New("upload").Parse(templateBox.String("upload.gtpl"))
+		t.Execute(w, hostname)
 	} else {
 		r.ParseMultipartForm(32 << 20)
 
@@ -87,9 +143,10 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		}
 		defer file.Close()
 
+		// check private checkbox, and generate a filepath for a private or public file
 		private := r.FormValue("private")
 		var targetFileName string
-		if len(private) != 0 {
+		if len(private) != 0 && !strings.EqualFold(private, "false") {
 			uuid := generateUUID()
 			fileExt := filepath.Ext(handler.Filename)
 			targetFileName = privateDir + "/" + uuid + fileExt
@@ -97,6 +154,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 			targetFileName = publicDir + "/" + handler.Filename
 		}
 
+		// create the file on the filesystem
 		f, err := os.OpenFile(targetFileName, os.O_WRONLY|os.O_CREATE, 0744)
 		if err != nil {
 			log.Println("Could not create file: ", err)
@@ -104,8 +162,10 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		}
 		defer f.Close()
 
+		// copy file from form to filesystem
 		io.Copy(f, file)
 
+		// write the JSON response
 		response := uploadResponse{getHostURL() + "/" + targetFileName}
 		js, err := json.Marshal(response)
 		if err != nil {
@@ -126,11 +186,13 @@ func getEnv(key, fallback string) string {
 	return value
 }
 
+// creates the public and private dirs that were configured
 func makeDirs() {
 	os.MkdirAll(publicDir, 0744)
 	os.MkdirAll(privateDir, 0744)
 }
 
+// composes a full host URL including http://
 func getHostURL() string {
 	return "http://" + hostname
 }
