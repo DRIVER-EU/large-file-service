@@ -1,0 +1,25 @@
+language: go
+
+go:
+- master
+
+sudo: required
+
+services:
+- docker
+
+if: branch IN (master, develop)
+
+script:
+- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+- docker build -t drivereu/large-file-service:$TRAVIS_BRANCH-latest .
+- if [ $TRAVIS_BRANCH == "master" ]; then docker tag drivereu/large-file-service:$TRAVIS_BRANCH-latest
+  drivereu/large-file-service:latest; fi
+- if [ ! -z $TRAVIS_TAG ]; then docker tag drivereu/large-file-service:$TRAVIS_BRANCH-latest
+  drivereu/large-file-service:$TRAVIS_TAG; fi
+- docker push drivereu/large-file-service
+
+env:
+  global:
+  - secure: e7RlMhGwd1eDqdq1QTOUW6FvxzrCjiFVcaLXR3lXwMSXBPUKSwTdyQXi5tsKcvP05GDBBRsOmkmw1vTDlTMJMSL5ewmn0Yq6/d4Py/9nUKe160VWABDJKPi/NSTZ7TSJfP95Wldafq9+1+hStpl/Tl8rROmFRkvNrQK8n27DXE6BniKsgw+lRghkY+RJHe7F6yha8AeN1uC6EQMPXy4zwGQsCENFyTzeoGa1gGmYfnAsqcBkGNXuUoexMG4dd8/0t7li/qj/maQY/1mr4Qbdy0z40E3GUMKZmF3tE+Hhx3o/KOIAFEwaHPWb/Z8wzduqC+Zo4zDQX75hM3IzKxjVnOc7rtuYMyTvYK+KFyRMqauUeFXlCvpA1iKhRZU7Xjl9zI9pIZ++22fACDEKthS94HLyM+kG5+ffh9DGj4fs4Ajub8LUrH8Pdqg8yGw/VjtxfHuvapNgBDnA2Thoz85uJDrowT6oyJlud8eLiJ8mF3lBdbWS1tXJcaxC1U6mqaltAfmJG+Od4zMCxzmP+wN70DkQYk8ROhOtV5r+mU9vpM1jzjXo9yoAAui3HjFaJ4Fie4sGg5BELBkRkOxx7ZHE5Uocx8l1sXlvLmZ96ExXCgtwWq3SN4Iv5lwsJiBSTNoE3UVgLfjpPKpU+Iu+kreaglewr8UfhKOtaaeNcWyNAIk=
+  - secure: KtLBnswz40ou9lpy4voJAFn1IecuTzsUOsFJV2e3Xz1G+4c2Qtedp5t9UTFBxgmafLoLSmaDTVfBIISygjYfqyJkPT/Sf8OX1Du9IIT4E/xFPo05CVIzB9WQtEW+WbPFZZ8xtONUFxNNGe7gqCEZYTacFWtG0iRtk8WyyqmN/wjiCQi2XSPudhMhQpXUT6vCcu2jMEyFsjC2HBd2Oa63yvGOc+A1QSMwZi1frkaevcsu+VJeRzAkpx2o+xCz6RMkNsJtLx3pZyTVF7wLqVNcYS4tCx8/Mn86sVIO8ubvAQBjJ9/H4q5TiTUNzNbz0UOY1we/bt5ZMb61Jg2fWd2ALg9UwqSB7He6Kqxp4mMPXGZo9Pg6kgVu3/FRV50viLJBua78ReS4OKRm6wrX5gfBeUjUlyErdIhjUZI6gxqHYEr7efDuTIHKqhaLUJiC66Nr28FL4+K2tmd0/A0J/tRiOYtpJsiow1qGLyl8aVCxMwLSyj3OsU1gfr8pqiMDM5b/0Djcdhnm+Yt9cTuVL8mqgmJkA9OO9kuUYDlFlzFzRJrzYKn/J5dA9d6K5SJ1qBXWxe2wl2hpDQjiuIYUsXqb9rwXxCpEbJD+6+295PV+DGbTw5WgGWW2ijbzObqhrFfEXeITrQwN7C6zs1Frf9WIoUjL8xcKuzuwSX/z0LNBy1s=

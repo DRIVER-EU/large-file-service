@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gobuffalo/packr"
 	"github.com/gorilla/mux"
 )
 
@@ -26,11 +25,9 @@ type uploadResponse struct {
 var publicDir string
 var privateDir string
 var hostname string
+var port string
 var writeTimeout int
 var readTimeout int
-
-var templateBox packr.Box
-var swaggerBox packr.Box
 
 func main() {
 	// first set settings from ENV variables with a default
@@ -38,11 +35,6 @@ func main() {
 
 	// then override with flags if set
 	getFlags()
-
-	// package templates into binary for easy distribution as they should not change much
-	templateBox = packr.NewBox("./templates")
-
-	swaggerBox = packr.NewBox("./swagger")
 
 	// create a server router for relative paths
 	router := mux.NewRouter()
@@ -61,7 +53,7 @@ func main() {
 	router.PathPrefix("/public").Handler(http.StripPrefix("/public", fs))
 
 	// file server for the Swagger UI static resources
-	swaggerServer := http.FileServer(swaggerBox)
+	swaggerServer := http.FileServer(http.Dir("swagger"))
 	router.PathPrefix("/api/resources").Handler(http.StripPrefix("/api/resources", swaggerServer))
 
 	// function handler to generate an serve the Swagger UI template so it is dynamic based on provided hostname
@@ -69,14 +61,14 @@ func main() {
 
 	server := &http.Server{
 		Handler:      router,
-		Addr:         hostname,
+		Addr:         ":"+port,
 		WriteTimeout: time.Duration(writeTimeout) * time.Second,
 		ReadTimeout:  time.Duration(readTimeout) * time.Second,
 	}
 
 	makeDirs()
 
-	log.Printf("File uploader service started! Listening at: http://" + hostname)
+	log.Printf("File uploader service started! Listening at: " + getHttpUrl())
 	log.Printf("Public upload dir is: " + publicDir)
 	log.Printf("Private upload dir is: " + privateDir)
 	log.Fatal(server.ListenAndServe())
@@ -84,7 +76,8 @@ func main() {
 
 // gets and sets the environment variables if present, otherwise falls back to defaults
 func getEnvVariables() {
-	hostname = getEnv("HOST", "localhost:9090")
+	port = getEnv("PORT", "9090")
+	hostname = getEnv("HOST", "localhost")
 	publicDir = strings.TrimSuffix(getEnv("PUBLIC_UPLOAD_DIR", "public"), "/")
 	privateDir = strings.TrimSuffix(getEnv("PRIVATE_UPLOAD_DIR", "private"), "/")
 	writeTimeout, _ = strconv.Atoi(getEnv("WRITE_TIMEOUT_SECS", "120"))
@@ -93,7 +86,8 @@ func getEnvVariables() {
 
 // overwrites the configuration with command line parameters if provided
 func getFlags() {
-	flag.StringVar(&hostname, "hostname", hostname, "hostname including port of the file server")
+	flag.StringVar(&port, "port", port, "port of the file server")
+	flag.StringVar(&hostname, "hostname", hostname, "hostname of the file server")
 	flag.StringVar(&publicDir, "publicDir", publicDir, "path of the public upload directory")
 	flag.StringVar(&privateDir, "privateDir", privateDir, "path of the private upload directory")
 	readTimeoutPtr := flag.Int("writeTimeout", readTimeout, "HTTP Server write timeout in seconds.")
@@ -121,16 +115,20 @@ func getFile(w http.ResponseWriter, r *http.Request) {
 // renders the Swagger UI template with the configured hostname
 func swaggerUI(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.New("swaggerUI").Parse(swaggerBox.String("index.gtpl"))
-		t.Execute(w, hostname)
+		t, _ := template.ParseFiles("swagger/index.gtpl")
+		t.Execute(w, getUrl())
 	}
+}
+
+func getUrl() string {
+	return hostname + ":" + port
 }
 
 // Main upload functionaly. Serves a simple HTML form for get, and handles public and private file uploads via a form post.
 func upload(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.New("upload").Parse(templateBox.String("upload.gtpl"))
-		t.Execute(w, hostname)
+		t, _ := template.ParseFiles("templates/upload.gtpl")
+		t.Execute(w, getUrl())
 	} else {
 		r.ParseMultipartForm(32 << 20)
 
@@ -165,7 +163,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		io.Copy(f, file)
 
 		// write the JSON response
-		response := uploadResponse{getHostURL() + "/" + targetFileName}
+		response := uploadResponse{getHttpUrl() + "/" + targetFileName}
 		js, err := json.Marshal(response)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -192,8 +190,8 @@ func makeDirs() {
 }
 
 // composes a full host URL including http://
-func getHostURL() string {
-	return "http://" + hostname
+func getHttpUrl() string {
+	return "http://" + getUrl();
 }
 
 // Generates a UUID that can be used as an obfuscated file name
