@@ -1,0 +1,18 @@
+language: go
+
+go:
+  - "master"
+  
+sudo: required
+
+services:
+  - docker
+  
+if: branch IN (master, develop)
+
+script:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t drivereu/large-file-service:$TRAVIS_BRANCH-latest .
+  - if [ $TRAVIS_BRANCH == "master" ]; then docker tag drivereu/large-file-service:$TRAVIS_BRANCH-latest drivereu/large-file-service:latest; fi
+  - if [ ! -z $TRAVIS_TAG ]; then docker tag drivereu/large-file-service:$TRAVIS_BRANCH-latest drivereu/large-file-service:$TRAVIS_TAG; fi
+  - docker push drivereu/large-file-service
