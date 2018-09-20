@@ -10,7 +10,6 @@ info:
   license:
     name: "MIT License"
     url: "https://raw.githubusercontent.com/DRIVER-EU/large-file-service/master/LICENSE"
-host: "localhost:9090"
 basePath: "/"
 tags:
 - name: "upload"

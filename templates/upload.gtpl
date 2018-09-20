@@ -4,7 +4,7 @@
 </head>
 <body>
 <h1>Large File Upload Service</h1>
-<form enctype="multipart/form-data" action="http://{{.}}/upload" method="post">
+<form enctype="multipart/form-data" action="/upload" method="post">
     <input type="file" name="uploadFile" /><br/><br/>
     <input type="checkbox" name="private" value="private" checked />
     <label for="private">Private upload (obfuscate filename)</label><br/><br/>

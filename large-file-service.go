@@ -24,7 +24,7 @@ type uploadResponse struct {
 
 var publicDir string
 var privateDir string
-var hostname string
+var URL string
 var port string
 var writeTimeout int
 var readTimeout int
@@ -61,14 +61,14 @@ func main() {
 
 	server := &http.Server{
 		Handler:      router,
-		Addr:         ":"+port,
+		Addr:         ":80",
 		WriteTimeout: time.Duration(writeTimeout) * time.Second,
 		ReadTimeout:  time.Duration(readTimeout) * time.Second,
 	}
 
 	makeDirs()
 
-	log.Printf("File uploader service started! Listening at: " + getHttpUrl())
+	log.Printf("File uploader service started! Listening at: " + URL)
 	log.Printf("Public upload dir is: " + publicDir)
 	log.Printf("Private upload dir is: " + privateDir)
 	log.Fatal(server.ListenAndServe())
@@ -76,8 +76,7 @@ func main() {
 
 // gets and sets the environment variables if present, otherwise falls back to defaults
 func getEnvVariables() {
-	port = getEnv("PORT", "9090")
-	hostname = getEnv("HOST", "localhost")
+	URL = strings.TrimSuffix(getEnv("URL", "http://localhost"), "/")
 	publicDir = strings.TrimSuffix(getEnv("PUBLIC_UPLOAD_DIR", "public"), "/")
 	privateDir = strings.TrimSuffix(getEnv("PRIVATE_UPLOAD_DIR", "private"), "/")
 	writeTimeout, _ = strconv.Atoi(getEnv("WRITE_TIMEOUT_SECS", "120"))
@@ -87,7 +86,7 @@ func getEnvVariables() {
 // overwrites the configuration with command line parameters if provided
 func getFlags() {
 	flag.StringVar(&port, "port", port, "port of the file server")
-	flag.StringVar(&hostname, "hostname", hostname, "hostname of the file server")
+	flag.StringVar(&URL, "url", URL, "URL of the file server (including http://)")
 	flag.StringVar(&publicDir, "publicDir", publicDir, "path of the public upload directory")
 	flag.StringVar(&privateDir, "privateDir", privateDir, "path of the private upload directory")
 	readTimeoutPtr := flag.Int("writeTimeout", readTimeout, "HTTP Server write timeout in seconds.")
@@ -116,19 +115,15 @@ func getFile(w http.ResponseWriter, r *http.Request) {
 func swaggerUI(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("swagger/index.gtpl")
-		t.Execute(w, getUrl())
+		t.Execute(w, nil)
 	}
-}
-
-func getUrl() string {
-	return hostname + ":" + port
 }
 
 // Main upload functionaly. Serves a simple HTML form for get, and handles public and private file uploads via a form post.
 func upload(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("templates/upload.gtpl")
-		t.Execute(w, getUrl())
+		t.Execute(w, nil)
 	} else {
 		r.ParseMultipartForm(32 << 20)
 
@@ -163,7 +158,7 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		io.Copy(f, file)
 
 		// write the JSON response
-		response := uploadResponse{getHttpUrl() + "/" + targetFileName}
+		response := uploadResponse{URL + "/" + targetFileName}
 		js, err := json.Marshal(response)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -187,11 +182,6 @@ func getEnv(key, fallback string) string {
 func makeDirs() {
 	os.MkdirAll(publicDir, 0744)
 	os.MkdirAll(privateDir, 0744)
-}
-
-// composes a full host URL including http://
-func getHttpUrl() string {
-	return "http://" + getUrl();
 }
 
 // Generates a UUID that can be used as an obfuscated file name
