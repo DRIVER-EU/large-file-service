@@ -10,6 +10,10 @@ The Test-bed Large File service allows uploading large files. An uploaded file m
 * Run `go build .`
 * Execute `large-file-service` or `large-file-service.exe` for windows binary from your command line
 
+Alternatively, run the Large File Service with docker:
+
+* `docker run -p 9090:9090 drivereu/large-file-service`
+
 # Usage (API Spec)
 
 Once the Service is Running you can find a Swagger UI containing API definitions and allowing you to try out the API at http://<hostname>/api. This is http://localhost:9090/api by default.
